@@ -9,7 +9,7 @@ It runs entirely within Google Apps Script using a dark "Lone Wolf" aesthetic si
 ## ⚡ Core Features
 
 ### 1. Bulk UTM Generation
-- Choose any column (A-E) containing base URLs to append tracking data to.
+- **Active Selection Processing:** Simply highlight any range of cells containing your base URLs directly in the spreadsheet before clicking generate. No more guessing column letters.
 - Standard inputs for all UTM parameters (`utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`).
 - **Performance Optimized:** Uses an asynchronous, chunk-based processing model (handling 50 rows at a time) to completely bypass Google’s strict execution time limits. It allows generation of thousands of URLs without crashing.
 

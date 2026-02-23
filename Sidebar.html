@@ -207,30 +207,30 @@
       margin-bottom: 16px;
     }
 
-    .platform-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
+    .template-container {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
     }
 
-    .badge {
-      padding: 4px 8px;
-      background: var(--card);
-      border: 1px dashed var(--muted);
-      border-radius: 4px;
-      /* Slight radius for badges even in Lone Wolf */
+    .template-container.active {
+      display: block;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .template-grid .input-group {
+      margin-bottom: 0px;
+    }
+
+    .template-grid label {
       font-size: 11px;
-      color: var(--foreground);
-      cursor: pointer;
-      font-family: monospace;
-      transition: all 0.2s;
-      user-select: none;
-    }
-
-    .badge:hover {
-      background: var(--input);
-      border-color: var(--secondary);
-      color: var(--secondary);
+      color: var(--muted);
     }
   </style>
 </head>
@@ -238,40 +238,49 @@
 <body>
   <h2>UTM URL Builder</h2>
 
-  <div class="input-group">
-    <label>URL Column</label>
-    <select id="urlColumn">
-      <option value="1">Column A</option>
-      <option value="2">Column B</option>
-      <option value="3">Column C</option>
-      <option value="4">Column D</option>
-      <option value="5">Column E</option>
-    </select>
+  <div
+    style="margin-bottom: 16px; padding: 12px; background: rgba(125, 211, 252, 0.05); border-left: 3px solid var(--secondary); font-size: 12px;">
+    <strong>Instruction:</strong> Highlight the cells containing your base URLs in the sheet, then click Generate.
+  </div>
+
+  <div class="input-group" style="margin-bottom: 20px;">
+    <label style="margin-bottom: 8px;">Generation Mode</label>
+    <div style="display: flex; gap: 15px; font-size: 13px;">
+      <label style="display: inline-flex; align-items: center; font-weight: 400; cursor: pointer;">
+        <input type="radio" name="genMode" value="both" checked style="width: auto; margin: 0 6px 0 0;"> Both
+      </label>
+      <label style="display: inline-flex; align-items: center; font-weight: 400; cursor: pointer;">
+        <input type="radio" name="genMode" value="utm" style="width: auto; margin: 0 6px 0 0;"> UTM Only
+      </label>
+      <label style="display: inline-flex; align-items: center; font-weight: 400; cursor: pointer;">
+        <input type="radio" name="genMode" value="short" style="width: auto; margin: 0 6px 0 0;"> Shortener Only
+      </label>
+    </div>
   </div>
 
   <div class="input-group">
     <label>UTM Source <span class="required-star">*</span></label>
-    <input type="text" id="utmSource" placeholder="e.g., google, newsletter" onfocus="setLastFocused(this)">
+    <input type="text" id="utmSource" placeholder="e.g., google, newsletter">
   </div>
 
   <div class="input-group">
     <label>UTM Medium <span class="required-star">*</span></label>
-    <input type="text" id="utmMedium" placeholder="e.g., cpc, email" onfocus="setLastFocused(this)">
+    <input type="text" id="utmMedium" placeholder="e.g., cpc, email">
   </div>
 
   <div class="input-group">
     <label>UTM Campaign <span class="required-star">*</span></label>
-    <input type="text" id="utmCampaign" placeholder="e.g., summer_sale" onfocus="setLastFocused(this)">
+    <input type="text" id="utmCampaign" placeholder="e.g., summer_sale">
   </div>
 
   <div class="input-group">
     <label>UTM Term (Optional)</label>
-    <input type="text" id="utmTerm" placeholder="e.g., running+shoes" onfocus="setLastFocused(this)">
+    <input type="text" id="utmTerm" placeholder="e.g., running+shoes">
   </div>
 
   <div class="input-group">
     <label>UTM Content (Optional)</label>
-    <input type="text" id="utmContent" placeholder="e.g., logolink" onfocus="setLastFocused(this)">
+    <input type="text" id="utmContent" placeholder="e.g., logolink">
   </div>
 
   <!-- Advanced Tracking Section -->
@@ -281,20 +290,46 @@
   </div>
 
   <div class="advanced-panel" id="advancedPanel">
-    <div class="input-group platform-select">
+    <div class="input-group platform-select" style="margin-bottom:0px;">
       <label>Select Ad Platform</label>
-      <select id="platformSelect" onchange="updateBadges()">
+      <select id="platformSelect" onchange="updateTemplates()">
         <option value="none">Standard / Custom</option>
         <option value="google">Google Ads (ValueTrack)</option>
         <option value="meta">Meta Ads (Facebook/IG)</option>
       </select>
     </div>
 
-    <label style="margin-bottom: 8px; font-size: 11px; color: var(--muted);">
-      Click a token to insert into the last active input field:
-    </label>
-    <div class="platform-badges" id="badgeContainer">
-      <!-- Badges injected here via JS -->
+    <!-- Google Ads Inputs -->
+    <div id="googleTemplate" class="template-container">
+      <div class="template-grid">
+        <div class="input-group"><label>campaignid</label><input type="text" id="g_campaignid" value="{campaignid}">
+        </div>
+        <div class="input-group"><label>adgroupid</label><input type="text" id="g_adgroupid" value="{adgroupid}"></div>
+        <div class="input-group"><label>creative</label><input type="text" id="g_creative" value="{creative}"></div>
+        <div class="input-group"><label>keyword</label><input type="text" id="g_keyword" value="{keyword}"></div>
+        <div class="input-group"><label>matchtype</label><input type="text" id="g_matchtype" value="{matchtype}"></div>
+        <div class="input-group"><label>placement</label><input type="text" id="g_placement" value="{placement}"></div>
+        <div class="input-group"><label>device</label><input type="text" id="g_device" value="{device}"></div>
+      </div>
+    </div>
+
+    <!-- Meta Ads Inputs -->
+    <div id="metaTemplate" class="template-container">
+      <div class="template-grid">
+        <div class="input-group"><label>campaign_id</label><input type="text" id="m_campaignid" value="{{campaign.id}}">
+        </div>
+        <div class="input-group"><label>campaign_name</label><input type="text" id="m_campaignname"
+            value="{{campaign.name}}"></div>
+        <div class="input-group"><label>adset_id</label><input type="text" id="m_adsetid" value="{{adset.id}}"></div>
+        <div class="input-group"><label>adset_name</label><input type="text" id="m_adsetname" value="{{adset.name}}">
+        </div>
+        <div class="input-group"><label>ad_id</label><input type="text" id="m_adid" value="{{ad.id}}"></div>
+        <div class="input-group"><label>ad_name</label><input type="text" id="m_adname" value="{{ad.name}}"></div>
+        <div class="input-group"><label>site_source</label><input type="text" id="m_sitesource"
+            value="{{site_source_name}}"></div>
+        <div class="input-group"><label>placement</label><input type="text" id="m_placement" value="{{placement}}">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -319,14 +354,40 @@
       const campaign = document.getElementById('utmCampaign').value.trim();
       const term = document.getElementById('utmTerm').value.trim();
       const content = document.getElementById('utmContent').value.trim();
-      const colIdx = parseInt(document.getElementById('urlColumn').value);
+      const mode = document.querySelector('input[name="genMode"]:checked').value;
+      const platform = document.getElementById('platformSelect').value;
+
+      // Collect template variables based on platform
+      let templateVars = {};
+      if (platform === 'google') {
+        templateVars = {
+          campaignid: document.getElementById('g_campaignid').value.trim(),
+          adgroupid: document.getElementById('g_adgroupid').value.trim(),
+          creative: document.getElementById('g_creative').value.trim(),
+          keyword: document.getElementById('g_keyword').value.trim(),
+          matchtype: document.getElementById('g_matchtype').value.trim(),
+          placement: document.getElementById('g_placement').value.trim(),
+          device: document.getElementById('g_device').value.trim()
+        };
+      } else if (platform === 'meta') {
+        templateVars = {
+          campaign_id: document.getElementById('m_campaignid').value.trim(),
+          campaign_name: document.getElementById('m_campaignname').value.trim(),
+          adset_id: document.getElementById('m_adsetid').value.trim(),
+          adset_name: document.getElementById('m_adsetname').value.trim(),
+          ad_id: document.getElementById('m_adid').value.trim(),
+          ad_name: document.getElementById('m_adname').value.trim(),
+          site_source_name: document.getElementById('m_sitesource').value.trim(),
+          placement: document.getElementById('m_placement').value.trim()
+        };
+      }
 
       const statusEl = document.getElementById('status');
       const progressContainer = document.getElementById('progress-container');
 
-      if (!source || !medium || !campaign) {
+      if (mode !== 'short' && (!source || !medium || !campaign)) {
         progressContainer.style.display = 'block';
-        statusEl.innerHTML = 'Source, Medium, and Campaign are required.';
+        statusEl.innerHTML = 'Source, Medium, and Campaign are required for UTM tags.';
         statusEl.className = 'error-text';
         return;
       }
@@ -338,10 +399,10 @@
       statusEl.className = '';
       updateProgress(0, 'Initializing...');
 
-      const options = { source, medium, campaign, term, content, colIdx };
+      const options = { source, medium, campaign, term, content, mode, templateVars };
 
       // Start the first chunk
-      processChunk(options, 2); // Start at row 2
+      processChunk(options, null); // Start based on active selection
     }
 
     function processChunk(options, startRow) {
@@ -366,11 +427,14 @@
             resetButtons();
           } else if (result.status === 'partial') {
             // Update progress bar
-            const percentage = Math.round((result.currentRow / result.totalRows) * 100);
-            updateProgress(percentage, `Processed up to row ${result.currentRow} of ${result.totalRows}...`);
+            const rangeInfo = result.options.rangeInfo;
+            const total = rangeInfo.endRow - rangeInfo.startRow + 1;
+            const current = result.currentRow - rangeInfo.startRow + 1;
+            const percentage = Math.round((current / total) * 100);
+            updateProgress(percentage, `Processed up to row ${result.currentRow}...`);
 
             // Trigger next chunk
-            processChunk(options, result.nextRow);
+            processChunk(result.options, result.nextRow);
           }
         })
         .withFailureHandler(function (error) {
@@ -400,12 +464,6 @@
     }
 
     // --- Advanced Tracking Logic ---
-    let lastFocusedInput = null;
-
-    // Track the last text input the user clicked into
-    function setLastFocused(el) {
-      lastFocusedInput = el;
-    }
 
     function toggleAdvanced() {
       const panel = document.getElementById('advancedPanel');
@@ -417,69 +475,23 @@
       } else {
         panel.classList.add('active');
         icon.style.transform = 'rotate(90deg)';
-        updateBadges(); // Initialize badges if opened
+        updateTemplates();
       }
     }
 
-    function updateBadges() {
+    function updateTemplates() {
       const platform = document.getElementById('platformSelect').value;
-      const container = document.getElementById('badgeContainer');
-      container.innerHTML = ''; // clear out
+      const tGoogle = document.getElementById('googleTemplate');
+      const tMeta = document.getElementById('metaTemplate');
 
-      let tokens = [];
+      tGoogle.classList.remove('active');
+      tMeta.classList.remove('active');
 
       if (platform === 'google') {
-        tokens = [
-          '{campaignid}', '{adgroupid}', '{creative}',
-          '{keyword}', '{matchtype}', '{device}', '{placement}'
-        ];
+        tGoogle.classList.add('active');
       } else if (platform === 'meta') {
-        tokens = [
-          '{{campaign.id}}', '{{campaign.name}}',
-          '{{adset.id}}', '{{adset.name}}',
-          '{{ad.id}}', '{{ad.name}}',
-          '{{site_source_name}}', '{{placement}}'
-        ];
+        tMeta.classList.add('active');
       }
-
-      if (tokens.length === 0) {
-        container.innerHTML = '<span style="font-size:11px; color:var(--muted);">No specific tokens for standard URLs.</span>';
-        return;
-      }
-
-      tokens.forEach(token => {
-        const badge = document.createElement('div');
-        badge.className = 'badge';
-        badge.textContent = token;
-        badge.onclick = () => insertToken(token);
-        container.appendChild(badge);
-      });
-    }
-
-    function insertToken(token) {
-      if (!lastFocusedInput) {
-        // Fallback: If they haven't clicked anything yet, default to Campaign
-        lastFocusedInput = document.getElementById('utmCampaign');
-      }
-
-      // Insert at current cursor position or append
-      const startPos = lastFocusedInput.selectionStart || lastFocusedInput.value.length;
-      const endPos = lastFocusedInput.selectionEnd || lastFocusedInput.value.length;
-
-      const textLine = lastFocusedInput.value;
-      lastFocusedInput.value = textLine.substring(0, startPos) + token + textLine.substring(endPos, textLine.length);
-
-      // Cleanly return focus and set cursor after inserted token
-      lastFocusedInput.focus();
-      lastFocusedInput.selectionStart = startPos + token.length;
-      lastFocusedInput.selectionEnd = startPos + token.length;
-
-      // Trigger a visual flash on the input to show it updated
-      const originalBg = lastFocusedInput.style.backgroundColor;
-      lastFocusedInput.style.backgroundColor = 'rgba(125, 211, 252, 0.2)'; // secondary tint
-      setTimeout(() => {
-        lastFocusedInput.style.backgroundColor = originalBg;
-      }, 300);
     }
   </script>
 </body>
