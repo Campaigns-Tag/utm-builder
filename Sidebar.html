@@ -1,54 +1,487 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <base target="_top">
-    <style>
-      body { font-family: Arial, sans-serif; padding: 10px; }
-      label { display: block; margin-top: 10px; }
-      input { width: 100%; padding: 5px; margin-top: 3px; }
-      button { margin-top: 15px; padding: 8px 12px; background: #1a73e8; color: white; border: none; cursor: pointer; }
-      button:hover { background: #0c5cc0; }
-      #status { margin-top: 15px; font-weight: bold; }
-    </style>
-  </head>
-  <body>
-    <h2>UTM URL Generator</h2>
-    <label>UTM Source</label>
-    <input type="text" id="utmSource" placeholder="e.g. google">
 
-    <label>UTM Medium</label>
-    <input type="text" id="utmMedium" placeholder="e.g. cpc">
+<head>
+  <base target="_top">
+  <style>
+    :root {
+      /* Lone Wolf Aesthetic */
+      --background: #0a0a0a;
+      --foreground: #b0bccc;
+      --card: #121212;
+      --primary: #fafafa;
+      --primary-foreground: #000000;
+      --secondary: #7dd3fc;
+      --secondary-foreground: #000000;
+      --muted: #65758b;
+      --border: #2b3648;
+      --input: #2b3648;
+      --ring: #7dd3fc;
+      --destructive: #e11d48;
+      --success: #188038;
+    }
 
-    <label>UTM Campaign</label>
-    <input type="text" id="utmCampaign" placeholder="e.g. summer_sale">
+    body {
+      font-family: 'Plus Jakarta Sans', 'Google Sans', Roboto, sans-serif;
+      padding: 15px;
+      color: var(--foreground);
+      background-color: var(--background);
+    }
 
-    <button onclick="generate()">Generate URLs</button>
+    h2 {
+      font-size: 1.25rem;
+      margin-top: 0;
+      color: var(--primary);
+      letter-spacing: -0.025em;
+    }
 
-    <div id="status"></div>
+    .input-group {
+      margin-bottom: 12px;
+    }
 
-    <script>
-      function generate() {
-        document.getElementById('status').innerHTML = 'Processing...';
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--foreground);
+    }
 
-        const utmSource = document.getElementById('utmSource').value.trim();
-        const utmMedium = document.getElementById('utmMedium').value.trim();
-        const utmCampaign = document.getElementById('utmCampaign').value.trim();
+    input,
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 0px;
+      /* Aggressive Square */
+      background-color: var(--card);
+      color: var(--primary);
+      box-sizing: border-box;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
 
-        if (!utmSource || !utmMedium || !utmCampaign) {
-          document.getElementById('status').innerHTML = 'All fields are required.';
-          return;
-        }
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--ring);
+      box-shadow: 0 0 8px rgba(125, 211, 252, 0.4);
+    }
 
-        google.script.run
-          .withSuccessHandler(function(result) {
-            if (result.status === 'success') {
-              document.getElementById('status').innerHTML = '✅ ' + result.message;
-            } else {
-              document.getElementById('status').innerHTML = '❌ ' + result.message;
-            }
-          })
-          .generateUrls(utmSource, utmMedium, utmCampaign);
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    .field-description {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .button-group {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      border-radius: 0px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .primary-btn {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .primary-btn:hover {
+      background: #e5e5e5;
+      box-shadow: 0 0 10px rgba(250, 250, 250, 0.2);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: var(--foreground);
+      border: 1px solid var(--border);
+    }
+
+    .secondary-btn:hover {
+      background: var(--card);
+      border-color: var(--muted);
+    }
+
+    .secondary-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #progress-container {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 4px;
+      background-color: var(--border);
+      border-radius: 0px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background-color: var(--secondary);
+      width: 0%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 8px var(--secondary);
+    }
+
+    #status {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--secondary);
+    }
+
+    .error-text {
+      color: var(--destructive) !important;
+      text-shadow: 0 0 8px rgba(225, 29, 72, 0.4);
+    }
+
+    .success-text {
+      color: var(--success) !important;
+    }
+
+    .required-star {
+      color: var(--secondary);
+      text-shadow: 0 0 8px var(--secondary);
+    }
+
+    /* Advanced Tracking Toggle */
+    .advanced-toggle-container {
+      margin-top: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .advanced-toggle-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--secondary);
+      user-select: none;
+      transition: color 0.2s;
+    }
+
+    .advanced-toggle-container:hover .advanced-toggle-text {
+      color: #bae6fd;
+      text-shadow: 0 0 8px rgba(125, 211, 252, 0.4);
+    }
+
+    .advanced-icon {
+      margin-right: 8px;
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+
+    .advanced-panel {
+      display: none;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--secondary);
+      margin-bottom: 20px;
+    }
+
+    .advanced-panel.active {
+      display: block;
+    }
+
+    .platform-select {
+      margin-bottom: 16px;
+    }
+
+    .platform-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      background: var(--card);
+      border: 1px dashed var(--muted);
+      border-radius: 4px;
+      /* Slight radius for badges even in Lone Wolf */
+      font-size: 11px;
+      color: var(--foreground);
+      cursor: pointer;
+      font-family: monospace;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .badge:hover {
+      background: var(--input);
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+  </style>
+</head>
+
+<body>
+  <h2>UTM URL Builder</h2>
+
+  <div class="input-group">
+    <label>URL Column</label>
+    <select id="urlColumn">
+      <option value="1">Column A</option>
+      <option value="2">Column B</option>
+      <option value="3">Column C</option>
+      <option value="4">Column D</option>
+      <option value="5">Column E</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label>UTM Source <span class="required-star">*</span></label>
+    <input type="text" id="utmSource" placeholder="e.g., google, newsletter" onfocus="setLastFocused(this)">
+  </div>
+
+  <div class="input-group">
+    <label>UTM Medium <span class="required-star">*</span></label>
+    <input type="text" id="utmMedium" placeholder="e.g., cpc, email" onfocus="setLastFocused(this)">
+  </div>
+
+  <div class="input-group">
+    <label>UTM Campaign <span class="required-star">*</span></label>
+    <input type="text" id="utmCampaign" placeholder="e.g., summer_sale" onfocus="setLastFocused(this)">
+  </div>
+
+  <div class="input-group">
+    <label>UTM Term (Optional)</label>
+    <input type="text" id="utmTerm" placeholder="e.g., running+shoes" onfocus="setLastFocused(this)">
+  </div>
+
+  <div class="input-group">
+    <label>UTM Content (Optional)</label>
+    <input type="text" id="utmContent" placeholder="e.g., logolink" onfocus="setLastFocused(this)">
+  </div>
+
+  <!-- Advanced Tracking Section -->
+  <div class="advanced-toggle-container" onclick="toggleAdvanced()">
+    <span class="advanced-icon" id="advancedIcon">▶</span>
+    <span class="advanced-toggle-text">Advanced Tracking (Ad Networks)</span>
+  </div>
+
+  <div class="advanced-panel" id="advancedPanel">
+    <div class="input-group platform-select">
+      <label>Select Ad Platform</label>
+      <select id="platformSelect" onchange="updateBadges()">
+        <option value="none">Standard / Custom</option>
+        <option value="google">Google Ads (ValueTrack)</option>
+        <option value="meta">Meta Ads (Facebook/IG)</option>
+      </select>
+    </div>
+
+    <label style="margin-bottom: 8px; font-size: 11px; color: var(--muted);">
+      Click a token to insert into the last active input field:
+    </label>
+    <div class="platform-badges" id="badgeContainer">
+      <!-- Badges injected here via JS -->
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button class="primary-btn" id="generateBtn" onclick="startGeneration()">Generate URLs</button>
+    <button class="secondary-btn" id="cancelBtn" onclick="cancelGeneration()" disabled>Cancel</button>
+  </div>
+
+  <div id="progress-container">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <div id="status">Processing...</div>
+  </div>
+
+  <script>
+    let isCancelled = false;
+
+    function startGeneration() {
+      const source = document.getElementById('utmSource').value.trim();
+      const medium = document.getElementById('utmMedium').value.trim();
+      const campaign = document.getElementById('utmCampaign').value.trim();
+      const term = document.getElementById('utmTerm').value.trim();
+      const content = document.getElementById('utmContent').value.trim();
+      const colIdx = parseInt(document.getElementById('urlColumn').value);
+
+      const statusEl = document.getElementById('status');
+      const progressContainer = document.getElementById('progress-container');
+
+      if (!source || !medium || !campaign) {
+        progressContainer.style.display = 'block';
+        statusEl.innerHTML = 'Source, Medium, and Campaign are required.';
+        statusEl.className = 'error-text';
+        return;
       }
-    </script>
-  </body>
+
+      isCancelled = false;
+      document.getElementById('generateBtn').disabled = true;
+      document.getElementById('cancelBtn').disabled = false;
+      progressContainer.style.display = 'block';
+      statusEl.className = '';
+      updateProgress(0, 'Initializing...');
+
+      const options = { source, medium, campaign, term, content, colIdx };
+
+      // Start the first chunk
+      processChunk(options, 2); // Start at row 2
+    }
+
+    function processChunk(options, startRow) {
+      if (isCancelled) {
+        updateProgress(0, 'Cancelled by user.');
+        document.getElementById('status').className = 'error-text';
+        resetButtons();
+        return;
+      }
+
+      updateProgress(null, `Processing from row ${startRow}...`);
+
+      google.script.run
+        .withSuccessHandler(function (result) {
+          if (result.status === 'error') {
+            updateProgress(0, result.message);
+            document.getElementById('status').className = 'error-text';
+            resetButtons();
+          } else if (result.status === 'success') {
+            updateProgress(100, result.message);
+            document.getElementById('status').className = 'success-text';
+            resetButtons();
+          } else if (result.status === 'partial') {
+            // Update progress bar
+            const percentage = Math.round((result.currentRow / result.totalRows) * 100);
+            updateProgress(percentage, `Processed up to row ${result.currentRow} of ${result.totalRows}...`);
+
+            // Trigger next chunk
+            processChunk(options, result.nextRow);
+          }
+        })
+        .withFailureHandler(function (error) {
+          updateProgress(0, 'An unexpected error occurred: ' + error.message);
+          document.getElementById('status').className = 'error-text';
+          resetButtons();
+        })
+        .generateUrlsChunked(options, startRow);
+    }
+
+    function cancelGeneration() {
+      isCancelled = true;
+      document.getElementById('cancelBtn').disabled = true;
+      document.getElementById('status').innerHTML = 'Cancelling...';
+    }
+
+    function updateProgress(percent, text) {
+      if (percent !== null) {
+        document.getElementById('progressBar').style.width = percent + '%';
+      }
+      document.getElementById('status').innerText = text;
+    }
+
+    function resetButtons() {
+      document.getElementById('generateBtn').disabled = false;
+      document.getElementById('cancelBtn').disabled = true;
+    }
+
+    // --- Advanced Tracking Logic ---
+    let lastFocusedInput = null;
+
+    // Track the last text input the user clicked into
+    function setLastFocused(el) {
+      lastFocusedInput = el;
+    }
+
+    function toggleAdvanced() {
+      const panel = document.getElementById('advancedPanel');
+      const icon = document.getElementById('advancedIcon');
+
+      if (panel.classList.contains('active')) {
+        panel.classList.remove('active');
+        icon.style.transform = 'rotate(0deg)';
+      } else {
+        panel.classList.add('active');
+        icon.style.transform = 'rotate(90deg)';
+        updateBadges(); // Initialize badges if opened
+      }
+    }
+
+    function updateBadges() {
+      const platform = document.getElementById('platformSelect').value;
+      const container = document.getElementById('badgeContainer');
+      container.innerHTML = ''; // clear out
+
+      let tokens = [];
+
+      if (platform === 'google') {
+        tokens = [
+          '{campaignid}', '{adgroupid}', '{creative}',
+          '{keyword}', '{matchtype}', '{device}', '{placement}'
+        ];
+      } else if (platform === 'meta') {
+        tokens = [
+          '{{campaign.id}}', '{{campaign.name}}',
+          '{{adset.id}}', '{{adset.name}}',
+          '{{ad.id}}', '{{ad.name}}',
+          '{{site_source_name}}', '{{placement}}'
+        ];
+      }
+
+      if (tokens.length === 0) {
+        container.innerHTML = '<span style="font-size:11px; color:var(--muted);">No specific tokens for standard URLs.</span>';
+        return;
+      }
+
+      tokens.forEach(token => {
+        const badge = document.createElement('div');
+        badge.className = 'badge';
+        badge.textContent = token;
+        badge.onclick = () => insertToken(token);
+        container.appendChild(badge);
+      });
+    }
+
+    function insertToken(token) {
+      if (!lastFocusedInput) {
+        // Fallback: If they haven't clicked anything yet, default to Campaign
+        lastFocusedInput = document.getElementById('utmCampaign');
+      }
+
+      // Insert at current cursor position or append
+      const startPos = lastFocusedInput.selectionStart || lastFocusedInput.value.length;
+      const endPos = lastFocusedInput.selectionEnd || lastFocusedInput.value.length;
+
+      const textLine = lastFocusedInput.value;
+      lastFocusedInput.value = textLine.substring(0, startPos) + token + textLine.substring(endPos, textLine.length);
+
+      // Cleanly return focus and set cursor after inserted token
+      lastFocusedInput.focus();
+      lastFocusedInput.selectionStart = startPos + token.length;
+      lastFocusedInput.selectionEnd = startPos + token.length;
+
+      // Trigger a visual flash on the input to show it updated
+      const originalBg = lastFocusedInput.style.backgroundColor;
+      lastFocusedInput.style.backgroundColor = 'rgba(125, 211, 252, 0.2)'; // secondary tint
+      setTimeout(() => {
+        lastFocusedInput.style.backgroundColor = originalBg;
+      }, 300);
+    }
+  </script>
+</body>
+
 </html>
