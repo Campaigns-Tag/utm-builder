@@ -1,0 +1,24 @@
+{
+  "timeZone": "Asia/Kolkata",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "addOns": {
+    "common": {
+      "name": "UTM URL Generator",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Google_Sheets_logo.svg/1024px-Google_Sheets_logo.svg.png",
+      "useLocaleFromApp": true
+    },
+    "sheets": {
+      "homepageTrigger": {
+        "runFunction": "showSidebar",
+        "enabled": true
+      }
+    }
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets.currentonly",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/script.external_request"
+  ]
+}
