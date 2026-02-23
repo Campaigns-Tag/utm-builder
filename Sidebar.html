@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; padding: 10px; }
+      label { display: block; margin-top: 10px; }
+      input { width: 100%; padding: 5px; margin-top: 3px; }
+      button { margin-top: 15px; padding: 8px 12px; background: #1a73e8; color: white; border: none; cursor: pointer; }
+      button:hover { background: #0c5cc0; }
+      #status { margin-top: 15px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h2>UTM URL Generator</h2>
+    <label>UTM Source</label>
+    <input type="text" id="utmSource" placeholder="e.g. google">
+
+    <label>UTM Medium</label>
+    <input type="text" id="utmMedium" placeholder="e.g. cpc">
+
+    <label>UTM Campaign</label>
+    <input type="text" id="utmCampaign" placeholder="e.g. summer_sale">
+
+    <button onclick="generate()">Generate URLs</button>
+
+    <div id="status"></div>
+
+    <script>
+      function generate() {
+        document.getElementById('status').innerHTML = 'Processing...';
+
+        const utmSource = document.getElementById('utmSource').value.trim();
+        const utmMedium = document.getElementById('utmMedium').value.trim();
+        const utmCampaign = document.getElementById('utmCampaign').value.trim();
+
+        if (!utmSource || !utmMedium || !utmCampaign) {
+          document.getElementById('status').innerHTML = 'All fields are required.';
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.status === 'success') {
+              document.getElementById('status').innerHTML = '✅ ' + result.message;
+            } else {
+              document.getElementById('status').innerHTML = '❌ ' + result.message;
+            }
+          })
+          .generateUrls(utmSource, utmMedium, utmCampaign);
+      }
+    </script>
+  </body>
+</html>
